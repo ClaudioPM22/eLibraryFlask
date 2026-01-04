@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validate, validates, ValidationError
+from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
 from models.loan import LoanStatus
 
