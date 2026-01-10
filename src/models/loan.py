@@ -1,4 +1,4 @@
-from models import db
+from extensions import db
 from sqlalchemy import ForeignKey, Date
 from datetime import date, timedelta
 import enum
