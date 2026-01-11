@@ -1,35 +1,45 @@
-from models.loan import Loan
-from .book_service import BookService
-from .user_service import UserService
+from models.loan import Loan, LoanStatus
+from models.book import Book
 from extensions import db
-from datetime import datetime
+from datetime import date, timedelta
 
 class LoanService:
   @staticmethod
   def check_book_available(book_id):
-    active_loan = Loan.query.filter_by(book_id=book_id, return_date=None).first()
+    active_loan = Loan.query.filter_by(book_id=book_id, status=LoanStatus.ACTIVE).first()
 
-    if active_loan:
-      return False # No está disponible
-    return True # Esta disponible
+    return active_loan is None
+  
+  @staticmethod
+  def calculate_return_date(numpages):
+    if numpages <= 200:
+      days = 7
+    elif 200 < numpages <= 500:
+      days = 14
+    else:
+      days = 21
+    return date.today() + timedelta(days=days)
   
   @staticmethod
   def create_loan(data):
     book_id = data.get('book_id')
     user_id = data.get('user_id') 
 
-    if not BookService.get_book_by_id(book_id):
-        raise Exception("Operación fallida: El libro no existe en el sistema.")
+    book = Book.query.get(book_id)
+    if not book:
+      raise Exception("El libro no existe.")
     
-    if not UserService.get_user_by_id(user_id):
-        raise Exception("Operación fallida: El usuario no está registrado.")
-
     if not LoanService.check_book_available(book_id):
-        raise Exception("El libro ya se encuentra prestado actualmente.")
-    
+      raise Exception("El libro ya está prestado.")
+
+    # Aplicamos la lógica de páginas
+    due_date = LoanService.calculate_return_date(book.numpages)
     new_loan = Loan(
       book_id=book_id,
-      user_id=data.get('user_id')
+      user_id=user_id,
+      return_date=due_date,
+      status=LoanStatus.ACTIVE
+
     )
 
     db.session.add(new_loan)
@@ -38,10 +48,10 @@ class LoanService:
   
   @staticmethod
   def return_book(loan_id):
-     loan = Loan.query.get(loan_id)
-     if not loan or loan.return_date is not None:
-        return None
-     loan.return_date = datetime.now()
-     db.session.commit()
-     return loan
+    loan = Loan.query.get(loan_id)
+    if not loan:
+      return None
+    loan.mark_as_returned()
+    db.session.commit()
+    return loan
   

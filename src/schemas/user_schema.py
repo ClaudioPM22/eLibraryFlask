@@ -1,6 +1,7 @@
 from marshmallow import Schema, fields, validate
 from marshmallow_enum import EnumField
 from models.user import UserRole
+##from extensions import ma
 
 class UserSchema(Schema):
   id = fields.Int(dump_only=True)
@@ -11,8 +12,3 @@ class UserSchema(Schema):
     UserRole,
     by_value=True
   )
-
-  """role = fields.Str(
-    validate = validate.OneOf(["admin","client"]),
-    metadata = {"description":"El rol debe ser 'admin' o 'client'"}
-  )"""
