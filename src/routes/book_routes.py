@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from schemas import book_schema, books_schema
 from services.book_service import BookService
+from flask_jwt_extended import jwt_required
 
 book_bp = Blueprint('books', __name__)
 
@@ -18,6 +19,7 @@ def get_book(book_id):
   return jsonify(book_schema.dump(book)), 200
 
 @book_bp.route('/', methods=['POST'])
+@jwt_required()
 def create_book():
   data = request.get_json()
   
