@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from schemas import loan_schema, loans_schema
 from services.loan_service import LoanService
+from flask_jwt_extended import jwt_required
 
 loan_bp = Blueprint('loans', __name__)
 
@@ -10,6 +11,7 @@ def check_available(book_id):
   return jsonify({"book_id":book_id, "available":is_available}), 200
   
 @loan_bp.route('/', methods=['POST'])
+@jwt_required()
 def create_loan():
   data = request.get_json()
 
@@ -23,6 +25,7 @@ def create_loan():
     return jsonify({"error":str(e)}), 400
 
 @loan_bp.route('/<int:loan_id>/return', methods=['PUT'])
+@jwt_required()
 def return_book(loan_id):
   try:
     loan = LoanService.return_book(loan_id)

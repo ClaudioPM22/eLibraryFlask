@@ -36,6 +36,7 @@ def create_book():
     return jsonify({"error": str(e)}), 400
 
 @book_bp.route('/<int:book_id>', methods=['PUT'])
+@jwt_required()
 def update_book(book_id):
   data = request.get_json()
 
@@ -50,6 +51,7 @@ def update_book(book_id):
   return jsonify(book_schema.dump(up_book)), 200
 
 @book_bp.route('/<int:book_id>', methods=['DELETE'])
+@jwt_required()
 def delete_book(book_id):
   success = BookService.delete_book(book_id)
   if not success:
