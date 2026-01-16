@@ -1,4 +1,4 @@
-# API RESTful de microservicios para una E-Library
+# API RESTful para una E-Library
 
 ### Funcionalidades Clave:
   - Autenticación con JWT (JSON Web Tokens).
