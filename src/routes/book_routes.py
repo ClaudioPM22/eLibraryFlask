@@ -19,7 +19,7 @@ def get_book(book_id):
   return jsonify(book_schema.dump(book)), 200
 
 @book_bp.route('/', methods=['POST'])
-@jwt_required()
+#@jwt_required()
 def create_book():
   data = request.get_json()
   
