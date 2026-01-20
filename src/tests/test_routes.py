@@ -146,6 +146,91 @@ def test_delete_book_invalid_id_route(client,auth_headers):
   assert response.status_code == 404
   assert message == "Libro no encontrado"
 
+"""----------User Routes----------"""
+from models.user import UserRole
+
+def test_create_user_success_route(client,auth_headers):
+  payload= {
+    "username":"tester001",
+    "email":"tester001@test01.com",
+    "role":"client",
+    "password":"tester001",
+  }
+  response = client.post('/api/users/',json= payload,headers= auth_headers,
+  )
+
+  assert response.status_code == 201
+  user = response.get_json()
+  assert user["username"] == "tester001"
+  assert user["email"] == "tester001@test01.com"
+  assert user["role"] == "client"
+  assert "password" not in user
+  
+  payload= {
+    "username":"tester002",
+    "email":"tester002@test01.com",
+    "role":"admin",
+    "password":"tester002",
+  }
+  response = client.post(
+    '/api/users/',
+    json= payload,
+    headers= auth_headers,
+  )
+  user2 = response.get_json()
+  assert user2["role"] == "admin"
+
+def test_create_user_duplicate_email(client, sample_users, auth_headers):
+    #Prueba error cuando el email ya existe
+    payload = {
+        "username": "nuevo_usuario",
+        "email": "tester002@test.com", 
+        "role": "client",
+        "password": "password123"
+    }
+    response = client.post('/api/users/', json=payload, headers=auth_headers)
+    
+    assert response.status_code == 400
+    data = response.get_json()
+    assert "error" in data
+    assert data["error"] == "El correo electronico ya esta registrado."
+
+def test_create_user_invalid_format(client, auth_headers):
+    #Prueba error de formato (Error de Marshmallow)
+    payload = {
+        "username": "tu",          # Demasiado corto (min 3)
+        "email": "correo-invalido", # Formato mal
+        "role": "client",
+        "password": "123"          # Demasiado corto (min 8)
+    }
+    response = client.post('/api/users/', json=payload, headers=auth_headers)
+    
+    assert response.status_code == 400
+    data = response.get_json()
+    assert "errors" in data
+    errors = data["errors"]
+    assert "username" in errors
+    assert "email" in errors
+    assert "password" in errors
+
+def test_get_user_by_id_success_route(client,sample_users,auth_headers):
+  user = sample_users[0]
+  response = client.get(f'/api/users/{user.id}')
+  user = response.get_json()
+  assert response.status_code == 200
+  assert user["username"] == sample_users[0].username
+  assert user["email"] == sample_users[0].email
+  assert user["role"] == "client"
+  assert "password" not in user
+
+def test_get_user_by_invalid_id_route(client,auth_headers):
+  user_id = 999
+  response = client.get(f'/api/users/{user_id}')
+  data = response.get_json()
+  assert response.status_code == 404
+  assert data["message"] == "Usuario no encontrado"
+  
+
 """----------Loan Routes----------"""
 
 #def test_create_loan_success_route(client,auth_headers):

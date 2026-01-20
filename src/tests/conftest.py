@@ -1,9 +1,10 @@
 import pytest
 from app import create_app
 from extensions import db as _db
-from models.book import Book
+from models import Book, User
 import pytest
 from flask_jwt_extended import create_access_token
+from models import UserRole
 
 @pytest.fixture
 def app():
@@ -44,6 +45,25 @@ def sample_books(db):
   db.session.add_all([book1,book2])
   db.session.commit()
   return [book1,book2]
+
+@pytest.fixture
+def sample_users(db):
+  user1 = User(
+    username="tester001",
+    email="tester001@test.com",
+    role=UserRole.CLIENT,
+  )
+  user1.set_password("tester001")
+  user2 = User(
+    username="tester002",
+    email="tester002@test.com",
+    role=UserRole.CLIENT,
+  )
+  user2.set_password("tester002")
+  db.session.add_all([user1,user2])
+  db.session.commit()
+  return [user1,user2]
+  
 
 @pytest.fixture
 def auth_headers(app):

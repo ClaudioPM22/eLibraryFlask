@@ -1,6 +1,9 @@
 from models.user import User, UserRole
 from extensions import db
 
+class InvalidRoleError(Exception):
+  pass
+
 class UserService:
   @staticmethod
   def get_user_by_id(user_id):
@@ -12,10 +15,16 @@ class UserService:
     if existing_user:
       raise ValueError("El correo electronico ya esta registrado.")
     
+    role_str = data.get("role","client")
+    try:
+      role_enum = UserRole(role_str)
+    except ValueError:
+      raise InvalidRoleError("Rol invalido")
+    
     new_user = User(
       username=data.get('username'),
       email=data.get('email'),
-      role=data.get('role', UserRole.CLIENT),
+      role= role_enum,
     )
     new_user.set_password(data.get('password'))
     
