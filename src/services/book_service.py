@@ -4,11 +4,12 @@ from extensions import db
 class BookService:
   @staticmethod
   def get_all_book():
-    return Book.query.all()
+    return db.session.execute(db.select(Book)).scalars().all()
+    #return Book.query.all()
   
   @staticmethod
   def get_book_by_id(book_id):
-    return Book.query.get(book_id)
+    return db.session.get(Book, book_id)
     
   @staticmethod
   def create_book(data):
@@ -28,7 +29,7 @@ class BookService:
   
   @staticmethod
   def update_book(book_id, data):
-    book= Book.query.get(book_id)
+    book= db.session.get(Book,book_id)
     if not book:
       return None
     book.title = data.get('title', book.title)
@@ -41,7 +42,7 @@ class BookService:
   
   @staticmethod
   def delete_book(book_id):
-    book = Book.query.get(book_id)
+    book = db.session.get(Book,book_id)
     if book:
       db.session.delete(book)
       db.session.commit()

@@ -1,7 +1,7 @@
 import pytest
 from app import create_app
 from extensions import db as _db
-from models import Book, User
+from models import Book, User, Loan
 import pytest
 from flask_jwt_extended import create_access_token
 from models import UserRole
@@ -63,6 +63,16 @@ def sample_users(db):
   db.session.add_all([user1,user2])
   db.session.commit()
   return [user1,user2]
+
+@pytest.fixture
+def sample_loans(db):
+  loan1= Loan(
+    user_id = 1,
+    book_id = 1
+  )
+  db.session.add(loan1)
+  db.session.commit()
+  return loan1
   
 
 @pytest.fixture

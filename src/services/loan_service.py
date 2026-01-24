@@ -25,14 +25,13 @@ class LoanService:
     book_id = data.get('book_id')
     user_id = data.get('user_id') 
 
-    book = Book.query.get(book_id)
+    book = db.session.get(Book, book_id)
     if not book:
       raise Exception("El libro no existe.")
     
     if not LoanService.check_book_available(book_id):
       raise Exception("El libro ya está prestado.")
 
-    # Aplicamos la lógica de páginas
     due_date = LoanService.calculate_return_date(book.numpages)
     new_loan = Loan(
       book_id=book_id,
@@ -48,8 +47,8 @@ class LoanService:
   
   @staticmethod
   def return_book(loan_id):
-    loan = Loan.query.get(loan_id)
-    if not loan:
+    loan = db.session.get(Loan, loan_id)
+    if not loan or loan.status == LoanStatus.RETURNED:
       return None
     loan.mark_as_returned()
     db.session.commit()

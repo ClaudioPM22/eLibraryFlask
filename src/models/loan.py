@@ -24,16 +24,16 @@ class Loan(db.Model):
   loan_date = db.Column(
     Date, 
     default = date.today,
-    nullable = False
+    nullable = True
   )
   return_date = db.Column(
     Date,
-    nullable = False
+    nullable = True
   )
   status = db.Column(
     db.Enum(LoanStatus),
     default = LoanStatus.ACTIVE,
-    nullable = False
+    nullable = True
   )
 
   user = db.relationship("User", backref="loans")

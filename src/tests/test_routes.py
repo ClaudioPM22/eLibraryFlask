@@ -1,4 +1,6 @@
 
+
+
 """----------Book Routes----------"""
 def test_create_book_route(client, auth_headers):
   response = client.post(
@@ -232,8 +234,80 @@ def test_get_user_by_invalid_id_route(client,auth_headers):
   
 
 """----------Loan Routes----------"""
+from datetime import date, timedelta
+def test_create_loan_success_route(client,sample_users,sample_books,auth_headers):
+  user = sample_users[0]
+  book = sample_books[0]
+  payload = {
+    "user_id":user.id,
+    "book_id":book.id,
+  }
+  response = client.post(
+    '/api/loans/',
+    json=payload,
+    headers=auth_headers,
+  )
+  assert response.status_code == 201
 
-#def test_create_loan_success_route(client,auth_headers):
+def test_create_loan_unauthorized_route(client,sample_users,sample_books):
+  user = sample_users[0]
+  book = sample_books[0]
+  payload = {
+    "user_id":user.id,
+    "book_id":book.id,
+  }
+  response = client.post(
+    '/api/loans/',
+    json=payload,
+  )
+  assert response.status_code == 401
+
+def test_create_loan_invalid_format(client, auth_headers):
+    payload = {"book_id": "esto-no-es-un-numero"}
+    response = client.post(
+      '/api/loans/',
+      json=payload,
+      headers=auth_headers)
+    assert response.status_code == 400
+    assert "errors" in response.get_json()
+
+
+def test_create_loan_book_not_found(client, auth_headers):
+    payload = {"book_id": 9999, "user_id": 1}
+    response = client.post(
+      '/api/loans/', 
+      json=payload, 
+      headers=auth_headers)
+    assert response.status_code == 400
+    assert "error" in response.get_json() # Aquí entra al 'except'
+
+def test_return_book_success_route(client,sample_loans,auth_headers):
+  loan = sample_loans
+  response = client.put(f'/api/loans/{loan.id}/return', headers=auth_headers)
+
+  data = response.get_json()
+  assert response.status_code == 200
+  assert data["message"] == "Libro devuelto exitosamente"
+  assert "loan" in data
+
+def test_return_book_non_success_route(client,sample_loans,auth_headers):
+  response = client.put(
+    f'/api/loans/999/return',
+    headers=auth_headers)
+
+  data = response.get_json()
+  assert response.status_code == 404
+  assert data["message"] == "Prestamo no encontrado o ya devuelto"
+
+def test_check_available_book_route(client,sample_books):
+  book = sample_books[0]
+  response = client.get(f'/api/loans/check/{book.id}')
+
+  data = response.get_json()
+  assert response.status_code == 200
+  assert data["book_id"] == book.id
+  assert data["available"] == True
+
 
   
   
