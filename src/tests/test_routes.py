@@ -1,5 +1,31 @@
+"""----------Auth Route----------"""
+def test_login_success_route(client, sample_users):
+  user = sample_users[0]
+  response = client.post(
+    '/api/login/',
+    json = {
+      "email": user.email,
+      "password": user.username,
+    } 
+  )
+  data = response.get_json()
 
+  assert response.status_code == 200
+  assert "access_token" in data
 
+def test_login_invalid_credentials_route(client, sample_users):
+  user = sample_users[0]
+  response = client.post(
+    '/api/login/',
+    json = {
+      "email": user.email,
+      "password": "credencial invalida",
+    } 
+  )
+  data = response.get_json()
+
+  assert response.status_code == 401
+  assert data["message"] == "Credenciales invalidas"
 
 """----------Book Routes----------"""
 def test_create_book_route(client, auth_headers):
@@ -29,17 +55,34 @@ def test_create_book_unauthorized_route(client):
   assert response.status_code == 401
 
 def test_create_book_invalid_data_route(client,auth_headers):
-  json = {
+  payload = {
     "title": "",
     "author": "",
     "isbn": "1234567890",
     "numpages": -10,
   }
-  response = client.post('/api/books/',json=json,headers=auth_headers)
+  response = client.post('/api/books/',json=payload,headers=auth_headers)
   errors = response.get_json()["errors"]
   assert "title" in errors
   assert "isbn" in errors
   assert "numpages" in errors
+
+def test_create_book_isbn_error_route(client,sample_books,auth_headers):
+  book = sample_books[0]
+  payload = {
+    "title": book.title,
+    "author": book.author,
+    "isbn": book.isbn,
+    "numpages": book.numpages,
+  }
+  response = client.post(
+    '/api/books/',
+    json= payload,
+    headers = auth_headers,
+  )
+  data = response.get_json()
+  assert response.status_code == 400
+  assert "error" in data
 
 def test_get_books_route(client, sample_books):
   response = client.get('/api/books/')
@@ -66,6 +109,13 @@ def test_get_book_by_id_route(client, sample_books):
   assert data["author"] == sample_books[0].author
   assert data["isbn"] == sample_books[0].isbn
   assert data["numpages"] == sample_books[0].numpages
+
+def test_get_book_by_id_fail_route(client, sample_books):
+  response = client.get('/api/books/999')
+  data = response.get_json()
+  assert response.status_code == 404
+  assert data["message"] == "Libro no encontrado"
+
 
 def test_update_book_success_route(client, sample_books, auth_headers):
   book = sample_books[0]
@@ -129,6 +179,23 @@ def test_update_book_invalid_data_route(client, sample_books, auth_headers):
   assert "title" in errors
   assert "isbn" in errors
   assert "numpages" in errors
+
+def test_update_book_non_book_route(client,sample_books, auth_headers):
+  book = sample_books[0]
+  payload = {
+    "title": "book.title",  # inválido
+    "author":"book.author",
+    "isbn": "1112223334445",
+    "numpages": book.numpages + 100,  # inválido
+  }
+  response = client.put(
+    f'/api/books/999',
+    json = payload,
+    headers = auth_headers,
+  )
+  data = response.get_json()
+  assert response.status_code == 404
+  assert data["message"] == "Libro no encontrado"
 
 def test_delete_book_success_route(client, sample_books, auth_headers):
   book = sample_books[0]

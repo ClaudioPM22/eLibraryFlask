@@ -1,5 +1,6 @@
 from unittest.mock import patch
 from services.loan_service import LoanService
+from services.user_service import UserService, InvalidRoleError
 from models import Book, User, Loan, LoanStatus
 from datetime import date, timedelta
 import pytest
@@ -77,3 +78,15 @@ def test_return_book_success(app,db):
 def test_return_book_not_found(app):
   result = LoanService.return_book(1)
   assert result is None
+
+def test_create_user_invalid_role(app):
+  payload = {
+    "username":"tester001",
+    "email": "tester001@test.com",
+    "role":"administrator",
+    "password":"tester001",
+  }
+  with pytest.raises(InvalidRoleError) as excinfo:
+      UserService.create_user(payload)
+  
+  assert str(excinfo.value) == "Rol invalido"
